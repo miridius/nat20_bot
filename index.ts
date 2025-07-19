@@ -10,12 +10,18 @@ const getOrThrow = (envVar: string): string => {
 
 const bot = new Telegraf(getOrThrow('BOT_TOKEN'));
 
-bot.start((ctx) =>
-  ctx.reply(
-    "Welcome! Use the /roll command to roll some dice. Try /help if you're stuck",
-  ),
-);
+const helpMsg = `This bot is just a thin wrapper around the [rpg-dice-roller](https://github.com/dice-roller/rpg-dice-roller) library.
 
+There is only one command: ${'`'}/roll {notation}${'`'}. See [the dice-roller docs](https://dice-roller.github.io/documentation/guide/notation/) for all supported notations.
+
+Examples:
+ - /roll d20+5   (rolls a [d20](https://dice-roller.github.io/documentation/guide/notation/dice.html#standard) then adds 5)
+ - /roll 2d20k1 + 5   (rolls 2d20, [keeps](https://dice-roller.github.io/documentation/guide/notation/modifiers.html#keep) the highest, then adds 5 to it)
+ - /roll 2d6ro<=2+3   (rolls 2d6, [rerolls](https://dice-roller.github.io/documentation/guide/notation/modifiers.html#re-roll) any 1s or 2s (once), then adds 3)
+ 
+ Source is on [GitHub](https://github.com/miridius/nat20_bot/blob/main/index.ts). Issues/PRs welcome.`;
+
+// helper fn because ctx.reply doesn't properly reply, and we never want to unfurl links.
 const reply = (
   ctx: Context<Update.MessageUpdate<Message.TextMessage>>,
   text: string,
@@ -27,22 +33,21 @@ const reply = (
     reply_parameters: { message_id: ctx.msgId },
   });
 
-bot.help((ctx) =>
+bot.start((ctx) =>
   reply(
     ctx,
-    `This bot is just a thin wrapper around the [rpg-dice-roller](https://github.com/dice-roller/rpg-dice-roller) library.
+    `*Welcome!*
 
-There is only one command: ${'`'}/roll {notation}${'`'}. See [the dice-roller docs](https://dice-roller.github.io/documentation/guide/notation/) for all supported notations.
+${helpMsg}
 
-Examples:
- - /roll d20+5   (rolls a [d20](https://dice-roller.github.io/documentation/guide/notation/dice.html#standard) then adds 5)
- - /roll 2d20k1 + 5   (rolls 2d20, [keeps](https://dice-roller.github.io/documentation/guide/notation/modifiers.html#keep) the highest, then adds 5 to it)
- - /roll 2d6ro<=2+3   (rolls 2d6, [rerolls](https://dice-roller.github.io/documentation/guide/notation/modifiers.html#re-roll) any 1s or 2s (once), then adds 3)`,
+_Type /help to see these instructions again._`,
     'Markdown',
   ),
 );
 
-const emoji = (roll: DiceRoll): string | false =>
+bot.help((ctx) => reply(ctx, helpMsg, 'Markdown'));
+
+const emoji = (roll: DiceRoll): string =>
   (roll.maxTotal !== roll.minTotal &&
     (roll.total === roll.maxTotal
       ? ' 🎉'
