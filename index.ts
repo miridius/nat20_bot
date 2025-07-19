@@ -47,12 +47,8 @@ _Type /help to see these instructions again._`,
 
 bot.help((ctx) => reply(ctx, helpMsg, 'Markdown'));
 
-const emoji = (roll: DiceRoll): string =>
-  (roll.maxTotal !== roll.minTotal &&
-    (roll.total === roll.maxTotal
-      ? ' 🎉'
-      : roll.total === roll.minTotal && ' 💩')) ||
-  '';
+const emoji = ({ total, minTotal, maxTotal }: DiceRoll): string =>
+  total === maxTotal ? ' 🎉' : total === minTotal ? ' 💩' : '';
 
 bot.command('roll', (ctx) => {
   const notation = ctx.text.replace(/^[^ ]+\w+/, '').trim();
